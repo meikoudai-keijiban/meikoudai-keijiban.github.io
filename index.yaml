@@ -1,0 +1,427 @@
+openapi: 3.0.0
+info:
+  title: nitech-commnunity
+  version: 0.1.0
+servers:
+  - url: http://localhost:3000
+    description: ステージング環境
+  - url: http://localhost:3000
+    description: 本番環境
+security:
+  - openIdConnect:
+      - api://{AZURE_AD_CLIENT_ID}/Access
+tags:
+  - name: Users
+  - name: Postings
+  - name: Comments
+paths:
+  /users/{accountId}:
+    get:
+      tags:
+        - Users
+      summary: アカウント情報を取得する
+      parameters:
+        - name: accountId
+          in: path
+          schema:
+            type: number
+            example: 1
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+                  nitechUserId:
+                    type: string
+                  postings:
+                    type: array
+                    items:
+                      propaties:
+                        id:
+                          type: integer
+                        createdAt:
+                          type: string
+                          format: data-time
+                        updatedAt:
+                          type: string
+                          format: data-time
+                        user: 
+                          properties:
+                            id: 
+                              type: string
+                            nitechUserId:
+                              type: string
+                            name:
+                              type: string
+                            department:
+                              type: string
+                            icon:
+                              type: string
+                          required:
+                            - id
+                            - nitechUserId
+                            - name
+                            - department
+                            - icon
+                        title:
+                          type: string
+                        content:
+                          type: string
+                        category: 
+                          type: string
+                      required:
+                        - id
+                        - createdAt
+                        - updatedAt
+                        - user
+                        - title
+                        - content
+                        - category
+                required:
+                  - id
+                  - createdAt
+                  - updatedAt
+                  - nitechUserId
+                  - postings
+                nullable: true
+              example:
+                id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                createdAt: '2020-04-09T23:45:00.000Z'
+                updatedAt: '2020-04-09T23:45:00.000Z'
+                nitechUserId: '130114139'
+                postings:
+                  - id: '1592962200000202012604'
+                    createdAt: '2020-04-09T23:45:00.000Z'
+                    updatedAt: '2020-04-09T23:45:00.000Z'
+                    user:
+                      id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                      nitechUserId: '130114139'
+                      name: 山田太郎
+                      department: 学部第一部学生 情報工学科 ネットワーク分野
+                      icon: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1.png
+                    title: C0deについて
+                    content: 部員の方々は普段何をされていますか?
+                    category: その他
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        5XX:
+          description: Server Error
+  /postings:
+    get:
+      tags:
+        - Postings
+      summary: 投稿を最新順/人気順にn件取得する（キーワード検索/カテゴリ検索）
+      parameters:
+        - name: method
+          in: query
+          schema:
+            type: string
+            example: recent/popular
+          requred: true
+          description: 最新順/人気順
+        - name: n
+          in: query
+          schema:
+            type: integer
+            example: 10
+          required: true
+          description: 取得件数
+        - name: keyword
+          in: query
+          schema:
+            type: string
+            example: NITech
+          required: false
+          description: 検索時のパラメータ
+        - name: category
+          in: query
+          schema:
+            type: string
+            example: 学部第一部学生 学部第一部学生 情報工学科 ネットワーク分野 ネットワーク分野
+          required: false
+          description: 検索時のパラメータ
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                    updatedAt:
+                      type: string
+                      format: date-time
+                    user: 
+                      properties:
+                        id: 
+                          type: string
+                        nitechUserId:
+                          type: string
+                        name:
+                          type: string
+                        department:
+                          type: string
+                        icon:
+                          type: string
+                      required:
+                        - id
+                        - nitechUserId
+                        - name
+                        - department
+                        - icon
+                    title:
+                      type: string
+                    content:
+                      type: string
+                    category: 
+                      type: string
+              example:
+                - id: '1592962200000202012604'
+                  createdAt: '2020-04-01T00:00:00.000Z'
+                  updatedAt: '2020-04-01T00:00:00.000Z'
+                  user: 
+                    id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                    nitechUserId: '130114139'
+                    name: 山田太郎
+                    department: 学部第一部学生 情報工学科 ネットワーク分野
+                    icon: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1.png
+                  title: C0deについて
+                  content: 部員の方々は普段何をされていますか?
+                  category: その他
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        5XX:
+          description: Server Error
+  /postings/{postingId}:
+    get:
+      tags:
+        - Postings
+      summary: 特定の投稿の内容を取得する
+      parameters:
+        - name: postingId
+          in: path
+          schema:
+            type: string
+            example: '1592962200000202012604'
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  posting:
+                    properties:
+                      id:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: data-time
+                      updateAt:
+                        type: string
+                        format: data-time
+                      user:
+                        properties:
+                          id: 
+                            type: string
+                          nitechUserId:
+                            type: string
+                          name:
+                            type: string
+                          department: 
+                            type: string
+                          icon:
+                            type: string
+                        required:
+                          - id
+                          - nitechUserId
+                          - name
+                          - icon
+                      title:
+                        type: string
+                      content: 
+                        type: string
+                      category:
+                        type: string
+                    required:
+                      - id
+                      - createdAt
+                      - updateAt
+                      - user
+                      - title
+                      - content
+                      - category
+                  comments:
+                    type: array
+                    items: 
+                      propaties:
+                        id:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: data-time
+                        updatedAt:
+                          type: string
+                          format: data-time
+                        user:
+                          properties:
+                            id: 
+                              type: string
+                            nitechUserId:
+                              type: string
+                            name: 
+                              type: string
+                            department: 
+                              type: string
+                            icon:
+                              type: string
+                        content:
+                          type: string
+                      required:
+                        - id
+                        - createdAt
+                        - updatedAt
+                        - user
+                        - content
+                required:
+                  - posting
+                  - comments                 
+              example:
+                posting: 
+                  id: '1592962200000202012604'
+                  createdAt: '2020-04-01T00:00:00.000Z'
+                  updatedAt: '2020-04-01T00:00:00.000Z'
+                  user:
+                    id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                    nitechUserId: '130114139'
+                    name: 山田 太郎
+                    department: 学部第一部学生 情報工学科 ネットワーク分野
+                    icon: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1.png
+                  title: C0deについて
+                  content: 部員の方々は普段何をされていますか?
+                  category: その他
+                comments:
+                  - id: '1592962200000202012604'
+                    createdAt: '2020-04-02T00:00:00.000Z'
+                    updatedAt: '2020-04-02T00:00:00.000Z'
+                    user: 
+                      id: 7ce2ed99-9aac-4064-8809-288ceaa7f7d1
+                      nitechUserId: '130118809'
+                      name: 山田 花子
+                      department: 学部第一部学生 情報工学科 ネットワーク分野
+                      icon: 7ce2ed99-9aac-4064-8809-288ceaa7f7d1.png
+                    content: 基本寝てます
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        5XX:
+          description: Server Error
+  /postings:
+    post:
+      tags:
+        - Postings
+      summary: 投稿する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                category:
+                  type: string
+              required:
+                - title
+                - content
+                - category
+            example:
+              title: C0deについて
+              content: 部員の方々は普段何をされていますか?
+              category: その他
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        5XX:
+          description: Server Error
+  /postings/{postingId}/comments:
+    post:
+        tags:
+          - Comments
+        summary: 特定の投稿に対してコメントを投稿する
+        parameters:
+          - name: postingId
+            in: path
+            schema:
+              type: string
+              example: '1592962200000202012604'
+            required: true
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                properties:
+                  content:
+                    type: string
+                  parentCommentId:
+                    type: string
+                    nullable: true
+                required:
+                  - content
+              example:
+                content: 基本寝てます
+                parentCommentId: null
+        responses:
+          '201':
+            description: Created
+          '400':
+            description: Bad Request
+          '401':
+            description: Unauthorized
+          '404':
+            description: Not Found
+          5XX:
+            description: Server Error
+
+components:
+  securitySchemes:
+    openIdConnect:
+      type: openIdConnect
+      openIdConnectUrl: >-
+        https://login.microsoftonline.com/{AZURE_AD_TENANT_ID}/v2.0/.well-known/openid-configuration
