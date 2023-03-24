@@ -1,0 +1,1144 @@
+openapi: 3.0.0
+info:
+  title: pyrroline-server
+  version: 2.0.0
+servers:
+  - url: https://bleinfo.ict.nitech.ac.jp/api/v2
+    description: ステージング環境
+  - url: https://bledakoku.ict.nitech.ac.jp/api/v2
+    description: 本番環境
+security:
+  - openIdConnect:
+      - api://{AZURE_AD_CLIENT_ID}/Access
+tags:
+  - name: Devices
+  - name: Stamps
+  - name: Lectures
+paths:
+  /me/devices:
+    post:
+      tags:
+        - Devices
+      summary: デバイス情報を送信する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                embeddedId:
+                  type: string
+                  format: uuid
+                model:
+                  type: string
+                operatingSystem:
+                  type: string
+                  enum:
+                    - ios
+                    - android
+                operatingSystemVersion:
+                  type: string
+                appVersion:
+                  type: string
+              required:
+                - embeddedId
+                - model
+                - operatingSystem
+                - operatingSystemVersion
+                - appVersion
+            example:
+              embeddedId: 520a8400-b29b-4aa4-e716-4466551102200
+              model: iPhone10.2
+              operatingSystem: ios
+              operatingSystemVersion: '12.2'
+              appVersion: 2.0.0
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: integer
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+                  user:
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      nitechUserId:
+                        type: string
+                    required:
+                      - id
+                      - createdAt
+                      - updatedAt
+                      - nitechUserId
+                  embeddedId:
+                    type: string
+                    format: uuid
+                  model:
+                    type: string
+                  operatingSystem:
+                    type: string
+                    enum:
+                      - ios
+                      - android
+                  operatingSystemVersion:
+                    type: string
+                  appVersion:
+                    type: string
+                required:
+                  - id
+                  - createdAt
+                  - updatedAt
+                  - user
+                  - embeddedId
+                  - model
+                  - operatingSystem
+                  - operatingSystemVersion
+                  - appVersion
+              example:
+                id: 1
+                createdAt: '2020-04-09T23:45:00.000Z'
+                updatedAt: '2020-04-09T23:45:00.000Z'
+                user:
+                  id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                  createdAt: '2020-04-09T23:45:00.000Z'
+                  updatedAt: '2020-04-09T23:45:00.000Z'
+                  nitechUserId: '130114139'
+                embeddedId: 520a8400-b29b-4aa4-e716-4466551102200
+                model: iPhone10.2
+                operatingSystem: ios
+                operatingSystemVersion: '12.2'
+                appVersion: 2.0.0
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        5XX:
+          description: Server Error
+  /me/stamps:
+    get:
+      tags:
+        - Stamps
+      summary: ログインしているユーザーの打刻ログ一覧を取得する
+      parameters:
+        - name: until
+          in: query
+          schema:
+            type: string
+            format: date-time
+            default: new Date()
+            example: 2020-06-24T14%3A59%3A59.000Z
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            example: 10
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                    updatedAt:
+                      type: string
+                      format: date-time
+                    user:
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        nitechUserId:
+                          type: string
+                      required:
+                        - id
+                        - createdAt
+                        - updatedAt
+                        - nitechUserId
+                    stampedAt:
+                      type: string
+                      format: date-time
+                    place:
+                      properties:
+                        id:
+                          type: integer
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        name:
+                          type: string
+                        nitechRoomId:
+                          type: string
+                          nullable: true
+                        dmsPlaceId:
+                          type: string
+                          nullable: true
+                        cardReaders:
+                          type: array
+                          items:
+                            properties:
+                              id:
+                                type: string
+                              createdAt:
+                                type: string
+                                format: date-time
+                              updatedAt:
+                                type: string
+                                format: date-time
+                              stampMethod:
+                                type: string
+                                enum:
+                                  - pyrroline
+                                  - secom
+                                  - cardReader
+                            required:
+                              - id
+                              - createdAt
+                              - updatedAt
+                              - stampMethod
+                      required:
+                        - id
+                        - createdAt
+                        - updatedAt
+                        - name
+                        - nitechRoomId
+                        - dmsPlaceId
+                        - cardReaders
+                      nullable: true
+                    method:
+                      type: string
+                      enum:
+                        - pyrroline
+                        - secom
+                        - cardReader
+                      nullable: true
+                    status:
+                      type: string
+                      enum:
+                        - lecture
+                        - normal
+                        - weekend
+                        - night
+                        - noBeacon
+                    subjects:
+                      type: array
+                      items:
+                        properties:
+                          id:
+                            type: string
+                          createdAt:
+                            type: string
+                            format: date-time
+                          updatedAt:
+                            type: string
+                            format: date-time
+                          users:
+                            type: array
+                            items:
+                              properties:
+                                id:
+                                  type: string
+                                  format: uuid
+                                createdAt:
+                                  type: string
+                                  format: date-time
+                                updatedAt:
+                                  type: string
+                                  format: date-time
+                                nitechUserId:
+                                  type: string
+                              required:
+                                - id
+                                - createdAt
+                                - updatedAt
+                                - nitechUserId
+                          shift:
+                            type: string
+                            enum:
+                              - first
+                              - second
+                          name:
+                            type: string
+                          syllabusURL:
+                            type: string
+                          teacher:
+                            properties:
+                              id:
+                                type: string
+                              createdAt:
+                                type: string
+                                format: date-time
+                              updatedAt:
+                                type: string
+                                format: date-time
+                              name:
+                                type: string
+                            required:
+                              - id
+                              - createdAt
+                              - updatedAt
+                              - name
+                        required:
+                          - id
+                          - createdAt
+                          - updatedAt
+                          - users
+                          - shift
+                          - name
+                          - syllabusURL
+                          - teacher
+                  required:
+                    - id
+                    - createdAt
+                    - updatedAt
+                    - user
+                    - stampedAt
+                    - place
+                    - method
+                    - status
+                    - subjects
+              example:
+                - id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1159296190000002
+                  createdAt: '2020-06-24T01:25:00.000Z'
+                  updatedAt: '2020-06-24T01:25:00.000Z'
+                  user:
+                    id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                    createdAt: '2020-04-09T23:45:00.000Z'
+                    updatedAt: '2020-04-09T23:45:00.000Z'
+                    nitechUserId: '130114139'
+                  stampedAt: '2020-06-24T01:25:00.000Z'
+                  place:
+                    id: 1
+                    createdAt: '2020-04-01T00:00:00.000Z'
+                    updatedAt: '2020-04-01T00:00:00.000Z'
+                    name: '0112'
+                    nitechRoomId: C0010102
+                    dmsPlaceId: 55e92b4a890169a826ba23d2
+                    cardReaders:
+                      - id: a04
+                        createdAt: '2020-04-01T00:00:00.000Z'
+                        updatedAt: '2020-04-01T00:00:00.000Z'
+                        stampMethod: pyrroline
+                  method: pyrroline
+                  status: lecture
+                  subjects:
+                    - id: '202012604'
+                      createdAt: '2020-04-01T00:00:00.000Z'
+                      updatedAt: '2020-04-01T00:00:00.000Z'
+                      users:
+                        - id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                          createdAt: '2020-04-09T23:45:00.000Z'
+                          updatedAt: '2020-04-09T23:45:00.000Z'
+                          nitechUserId: '130114139'
+                      shift: first
+                      name: プログラミング言語論
+                      syllabusURL: https://syllabus.ict.nitech.ac.jp/view.php?id=202012604
+                      teacher:
+                        id: '256829373'
+                        createdAt: '2020-04-01T00:00:00.000Z'
+                        updatedAt: '2020-04-01T00:00:00.000Z'
+                        name: 山田 太郎
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        5XX:
+          description: Server Error
+  /me/devices/{deviceId}/stamps:
+    post:
+      tags:
+        - Stamps
+      summary: 打刻をする
+      parameters:
+        - name: deviceId
+          in: path
+          schema:
+            type: number
+            example: 1
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                stampedAt:
+                  type: string
+                  format: date-time
+                beacons:
+                  type: array
+                  items:
+                    properties:
+                      receivedTime:
+                        type: string
+                        format: date-time
+                      rssi:
+                        type: integer
+                      major:
+                        type: integer
+                      minor:
+                        type: integer
+                      proximity:
+                        type: string
+                      accuracy:
+                        type: integer
+                        description: iOSのみ
+                      macAddress:
+                        type: string
+                        format: MACAddress
+                        description: Androidのみ
+                    required:
+                      - receivedTime
+                      - rssi
+                      - major
+                      - minor
+                      - proximity
+                method:
+                  type: string
+                  enum:
+                    - pyrroline
+                    - secom
+                    - cardReader
+                isUserAction:
+                  type: boolean
+                  default: true
+              required:
+                - stampedAt
+                - beacons
+                - method
+            example:
+              stampedAt: '2020-06-24T01:25:00.000Z'
+              beacons:
+                - receivedTime: '2020-06-24T01:25:00.000Z'
+                  rssi: 0
+                  major: 78
+                  minor: 0
+                  proximity: '0'
+                  accuracy: -1
+              method: pyrroline
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+                  user:
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      nitechUserId:
+                        type: string
+                    required:
+                      - id
+                      - createdAt
+                      - updatedAt
+                      - nitechUserId
+                  stampedAt:
+                    type: string
+                    format: date-time
+                  place:
+                    properties:
+                      id:
+                        type: integer
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      name:
+                        type: string
+                      nitechRoomId:
+                        type: string
+                        nullable: true
+                      dmsPlaceId:
+                        type: string
+                        nullable: true
+                      cardReaders:
+                        type: array
+                        items:
+                          properties:
+                            id:
+                              type: string
+                            createdAt:
+                              type: string
+                              format: date-time
+                            updatedAt:
+                              type: string
+                              format: date-time
+                            stampMethod:
+                              type: string
+                              enum:
+                                - pyrroline
+                                - secom
+                                - cardReader
+                          required:
+                            - id
+                            - createdAt
+                            - updatedAt
+                            - stampMethod
+                    required:
+                      - id
+                      - createdAt
+                      - updatedAt
+                      - name
+                      - nitechRoomId
+                      - dmsPlaceId
+                      - cardReaders
+                    nullable: true
+                  method:
+                    type: string
+                    enum:
+                      - pyrroline
+                      - secom
+                      - cardReader
+                    nullable: true
+                  status:
+                    type: string
+                    enum:
+                      - lecture
+                      - normal
+                      - weekend
+                      - night
+                      - noBeacon
+                  subjects:
+                    type: array
+                    items:
+                      properties:
+                        id:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        users:
+                          type: array
+                          items:
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                              createdAt:
+                                type: string
+                                format: date-time
+                              updatedAt:
+                                type: string
+                                format: date-time
+                              nitechUserId:
+                                type: string
+                            required:
+                              - id
+                              - createdAt
+                              - updatedAt
+                              - nitechUserId
+                        shift:
+                          type: string
+                          enum:
+                            - first
+                            - second
+                        name:
+                          type: string
+                        syllabusURL:
+                          type: string
+                        teacher:
+                          properties:
+                            id:
+                              type: string
+                            createdAt:
+                              type: string
+                              format: date-time
+                            updatedAt:
+                              type: string
+                              format: date-time
+                            name:
+                              type: string
+                          required:
+                            - id
+                            - createdAt
+                            - updatedAt
+                            - name
+                      required:
+                        - id
+                        - createdAt
+                        - updatedAt
+                        - users
+                        - shift
+                        - name
+                        - syllabusURL
+                        - teacher
+                required:
+                  - id
+                  - createdAt
+                  - updatedAt
+                  - user
+                  - stampedAt
+                  - place
+                  - method
+                  - status
+                  - subjects
+              example:
+                id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1159296190000002
+                createdAt: '2020-06-24T01:25:00.000Z'
+                updatedAt: '2020-06-24T01:25:00.000Z'
+                user:
+                  id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                  createdAt: '2020-04-09T23:45:00.000Z'
+                  updatedAt: '2020-04-09T23:45:00.000Z'
+                  nitechUserId: '130114139'
+                stampedAt: '2020-06-24T01:25:00.000Z'
+                place:
+                  id: 1
+                  createdAt: '2020-04-01T00:00:00.000Z'
+                  updatedAt: '2020-04-01T00:00:00.000Z'
+                  name: '0112'
+                  nitechRoomId: C0010102
+                  dmsPlaceId: 55e92b4a890169a826ba23d2
+                  cardReaders:
+                    - id: a04
+                      createdAt: '2020-04-01T00:00:00.000Z'
+                      updatedAt: '2020-04-01T00:00:00.000Z'
+                      stampMethod: pyrroline
+                method: pyrroline
+                status: lecture
+                subjects:
+                  - id: '202012604'
+                    createdAt: '2020-04-01T00:00:00.000Z'
+                    updatedAt: '2020-04-01T00:00:00.000Z'
+                    users:
+                      - id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                        createdAt: '2020-04-09T23:45:00.000Z'
+                        updatedAt: '2020-04-09T23:45:00.000Z'
+                        nitechUserId: '130114139'
+                    shift: first
+                    name: プログラミング言語論
+                    syllabusURL: https://syllabus.ict.nitech.ac.jp/view.php?id=202012604
+                    teacher:
+                      id: '256829373'
+                      createdAt: '2020-04-01T00:00:00.000Z'
+                      updatedAt: '2020-04-01T00:00:00.000Z'
+                      name: 山田 太郎
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '409':
+          description: Conflict
+        5XX:
+          description: Server Error
+  /me/lectures:
+    get:
+      tags:
+        - Lectures
+      summary: ログインしているユーザーの授業一覧を取得する
+      parameters:
+        - name: until
+          in: query
+          schema:
+            type: string
+            format: date-time
+            example: 2020-06-24T14%3A59%3A59.000Z
+          required: true
+        - name: since
+          in: query
+          schema:
+            type: string
+            format: date-time
+            example: 2020-06-23T15%3A00%3A00.000Z
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: string
+                    createdAt:
+                      type: string
+                      format: date-time
+                    updatedAt:
+                      type: string
+                      format: date-time
+                    startPeroid:
+                      type: integer
+                    endPeriod:
+                      type: integer
+                    startAt:
+                      type: string
+                      format: date-time
+                    endAt:
+                      type: string
+                      format: date-time
+                    startStampingAt:
+                      type: string
+                      format: date-time
+                    endStampingAt:
+                      type: string
+                      format: date-time
+                    status:
+                      type: string
+                      enum:
+                        - normal
+                        - extra
+                        - canceled
+                    subject:
+                      properties:
+                        id:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        users:
+                          type: array
+                          items:
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                              createdAt:
+                                type: string
+                                format: date-time
+                              updatedAt:
+                                type: string
+                                format: date-time
+                              nitechUserId:
+                                type: string
+                            required:
+                              - id
+                              - createdAt
+                              - updatedAt
+                              - nitechUserId
+                        shift:
+                          type: string
+                          enum:
+                            - first
+                            - second
+                        name:
+                          type: string
+                        syllabusURL:
+                          type: string
+                        teacher:
+                          properties:
+                            id:
+                              type: string
+                            createdAt:
+                              type: string
+                              format: date-time
+                            updatedAt:
+                              type: string
+                              format: date-time
+                            name:
+                              type: string
+                          required:
+                            - id
+                            - createdAt
+                            - updatedAt
+                            - name
+                      required:
+                        - id
+                        - createdAt
+                        - updatedAt
+                        - users
+                        - shift
+                        - name
+                        - syllabusURL
+                        - teacher
+                    places:
+                      type: array
+                      items:
+                        properties:
+                          id:
+                            type: integer
+                          createdAt:
+                            type: string
+                            format: date-time
+                          updatedAt:
+                            type: string
+                            format: date-time
+                          name:
+                            type: string
+                          nitechRoomId:
+                            type: string
+                            nullable: true
+                          dmsPlaceId:
+                            type: string
+                            nullable: true
+                          cardReaders:
+                            type: array
+                            items:
+                              properties:
+                                id:
+                                  type: string
+                                createdAt:
+                                  type: string
+                                  format: date-time
+                                updatedAt:
+                                  type: string
+                                  format: date-time
+                                stampMethod:
+                                  type: string
+                                  enum:
+                                    - pyrroline
+                                    - secom
+                                    - cardReader
+                              required:
+                                - id
+                                - createdAt
+                                - updatedAt
+                                - stampMethod
+                        required:
+                          - id
+                          - createdAt
+                          - updatedAt
+                          - name
+                          - nitechRoomId
+                          - dmsPlaceId
+                          - cardReaders
+                  required:
+                    - id
+                    - createdAt
+                    - updatedAt
+                    - startPeroid
+                    - endPeriod
+                    - startAt
+                    - endAt
+                    - startStampingAt
+                    - endStampingAt
+                    - status
+                    - subject
+                    - places
+              example:
+                - id: '1592962200000202012604'
+                  createdAt: '2020-04-01T00:00:00.000Z'
+                  updatedAt: '2020-04-01T00:00:00.000Z'
+                  startPeriod: 3
+                  endPeriod: 4
+                  startAt: '2020-06-24T01:30:00.000Z'
+                  endAt: '2020-06-24T03:00:00.000Z'
+                  startStampingAt: '2020-06-23T01:20:00.000Z'
+                  endStampingAt: '2020-06-24T03:10:00.000Z'
+                  status: normal
+                  subject:
+                    id: '202012604'
+                    createdAt: '2020-04-01T00:00:00.000Z'
+                    updatedAt: '2020-04-01T00:00:00.000Z'
+                    users:
+                      - id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                        createdAt: '2020-04-09T23:45:00.000Z'
+                        updatedAt: '2020-04-09T23:45:00.000Z'
+                        nitechUserId: '130114139'
+                    shift: first
+                    name: プログラミング言語論
+                    syllabusURL: https://syllabus.ict.nitech.ac.jp/view.php?id=202012604
+                    teacher:
+                      id: '256829373'
+                      createdAt: '2020-04-01T00:00:00.000Z'
+                      updatedAt: '2020-04-01T00:00:00.000Z'
+                      name: 山田 太郎
+                  places:
+                    - id: 1
+                      createdAt: '2020-04-01T00:00:00.000Z'
+                      updatedAt: '2020-04-01T00:00:00.000Z'
+                      name: '0112'
+                      nitechRoomId: C0010102
+                      dmsPlaceId: 55e92b4a890169a826ba23d2
+                      cardReaders:
+                        - id: a04
+                          createdAt: '2020-04-01T00:00:00.000Z'
+                          updatedAt: '2020-04-01T00:00:00.000Z'
+                          stampMethod: pyrroline
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        5XX:
+          description: Server Error
+  /lectures/{id}:
+    get:
+      tags:
+        - Lectures
+      summary: 特定の授業を取得する
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            example: '1592962200000202012604'
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+                  startPeroid:
+                    type: integer
+                  endPeriod:
+                    type: integer
+                  startAt:
+                    type: string
+                    format: date-time
+                  endAt:
+                    type: string
+                    format: date-time
+                  startStampingAt:
+                    type: string
+                    format: date-time
+                  endStampingAt:
+                    type: string
+                    format: date-time
+                  status:
+                    type: string
+                    enum:
+                      - normal
+                      - extra
+                      - canceled
+                  subject:
+                    properties:
+                      id:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      users:
+                        type: array
+                        items:
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            createdAt:
+                              type: string
+                              format: date-time
+                            updatedAt:
+                              type: string
+                              format: date-time
+                            nitechUserId:
+                              type: string
+                          required:
+                            - id
+                            - createdAt
+                            - updatedAt
+                            - nitechUserId
+                      shift:
+                        type: string
+                        enum:
+                          - first
+                          - second
+                      name:
+                        type: string
+                      syllabusURL:
+                        type: string
+                      teacher:
+                        properties:
+                          id:
+                            type: string
+                          createdAt:
+                            type: string
+                            format: date-time
+                          updatedAt:
+                            type: string
+                            format: date-time
+                          name:
+                            type: string
+                        required:
+                          - id
+                          - createdAt
+                          - updatedAt
+                          - name
+                    required:
+                      - id
+                      - createdAt
+                      - updatedAt
+                      - users
+                      - shift
+                      - name
+                      - syllabusURL
+                      - teacher
+                  places:
+                    type: array
+                    items:
+                      properties:
+                        id:
+                          type: integer
+                        createdAt:
+                          type: string
+                          format: date-time
+                        updatedAt:
+                          type: string
+                          format: date-time
+                        name:
+                          type: string
+                        nitechRoomId:
+                          type: string
+                          nullable: true
+                        dmsPlaceId:
+                          type: string
+                          nullable: true
+                        cardReaders:
+                          type: array
+                          items:
+                            properties:
+                              id:
+                                type: string
+                              createdAt:
+                                type: string
+                                format: date-time
+                              updatedAt:
+                                type: string
+                                format: date-time
+                              stampMethod:
+                                type: string
+                                enum:
+                                  - pyrroline
+                                  - secom
+                                  - cardReader
+                            required:
+                              - id
+                              - createdAt
+                              - updatedAt
+                              - stampMethod
+                      required:
+                        - id
+                        - createdAt
+                        - updatedAt
+                        - name
+                        - nitechRoomId
+                        - dmsPlaceId
+                        - cardReaders
+                required:
+                  - id
+                  - createdAt
+                  - updatedAt
+                  - startPeroid
+                  - endPeriod
+                  - startAt
+                  - endAt
+                  - startStampingAt
+                  - endStampingAt
+                  - status
+                  - subject
+                  - places
+              example:
+                id: '1592962200000202012604'
+                createdAt: '2020-04-01T00:00:00.000Z'
+                updatedAt: '2020-04-01T00:00:00.000Z'
+                startPeriod: 3
+                endPeriod: 4
+                startAt: '2020-06-24T01:30:00.000Z'
+                endAt: '2020-06-24T03:00:00.000Z'
+                startStampingAt: '2020-06-23T01:20:00.000Z'
+                endStampingAt: '2020-06-24T03:10:00.000Z'
+                status: normal
+                subject:
+                  id: '202012604'
+                  createdAt: '2020-04-01T00:00:00.000Z'
+                  updatedAt: '2020-04-01T00:00:00.000Z'
+                  users:
+                    - id: 7ce2ed99-9aac-4064-9108-288ceaa7f7d1
+                      createdAt: '2020-04-09T23:45:00.000Z'
+                      updatedAt: '2020-04-09T23:45:00.000Z'
+                      nitechUserId: '130114139'
+                  shift: first
+                  name: プログラミング言語論
+                  syllabusURL: https://syllabus.ict.nitech.ac.jp/view.php?id=202012604
+                  teacher:
+                    id: '256829373'
+                    createdAt: '2020-04-01T00:00:00.000Z'
+                    updatedAt: '2020-04-01T00:00:00.000Z'
+                    name: 山田 太郎
+                places:
+                  - id: 1
+                    createdAt: '2020-04-01T00:00:00.000Z'
+                    updatedAt: '2020-04-01T00:00:00.000Z'
+                    name: '0112'
+                    nitechRoomId: C0010102
+                    dmsPlaceId: 55e92b4a890169a826ba23d2
+                    cardReaders:
+                      - id: a04
+                        createdAt: '2020-04-01T00:00:00.000Z'
+                        updatedAt: '2020-04-01T00:00:00.000Z'
+                        stampMethod: pyrroline
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        5XX:
+          description: Server Error
+components:
+  securitySchemes:
+    openIdConnect:
+      type: openIdConnect
+      openIdConnectUrl: >-
+        https://login.microsoftonline.com/{AZURE_AD_TENANT_ID}/v2.0/.well-known/openid-configuration

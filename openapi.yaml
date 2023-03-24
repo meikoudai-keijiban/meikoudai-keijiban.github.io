@@ -140,7 +140,7 @@ paths:
           in: query
           schema:
             type: integer
-            example: 10
+            example: '10'
           required: true
           description: 取得件数
         - name: keyword
@@ -345,7 +345,7 @@ paths:
           description: Not Found
         5XX:
           description: Server Error
-  /postings:
+  /posting:
     post:
       tags:
         - Postings
@@ -381,44 +381,43 @@ paths:
           description: Server Error
   /postings/{postingId}/comments:
     post:
-        tags:
-          - Comments
-        summary: 特定の投稿に対してコメントを投稿する
-        parameters:
-          - name: postingId
-            in: path
-            schema:
-              type: string
-              example: '1592962200000202012604'
-            required: true
-        requestBody:
+      tags:
+        - Comments
+      summary: 特定の投稿に対してコメントを投稿する
+      parameters:
+        - name: postingId
+          in: path
+          schema:
+            type: string
+            example: '1592962200000202012604'
           required: true
-          content:
-            application/json:
-              schema:
-                properties:
-                  content:
-                    type: string
-                  parentCommentId:
-                    type: string
-                    nullable: true
-                required:
-                  - content
-              example:
-                content: 基本寝てます
-                parentCommentId: null
-        responses:
-          '201':
-            description: Created
-          '400':
-            description: Bad Request
-          '401':
-            description: Unauthorized
-          '404':
-            description: Not Found
-          5XX:
-            description: Server Error
-
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                content:
+                  type: string
+                parentCommentId:
+                  type: string
+                  nullable: true
+              required:
+                - content
+            example:
+              content: 基本寝てます
+              parentCommentId: null
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        5XX:
+          description: Server Error
 components:
   securitySchemes:
     openIdConnect:
